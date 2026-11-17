@@ -15,7 +15,7 @@ def create_profile(data: pd.DataFrame, max_rows: int = 50_000):
     columns = {}
     for column in data.columns:
         s = sample[column].fillna("").astype(str).str.strip()
-        isnull = s.str.upper().isnull()
+        isnull = s.str.upper().isin(NULL_TOKENS)
         vals = s[~isnull]
         shapes = vals.map(shape)
         columns[str(column)] = {
@@ -27,7 +27,7 @@ def create_profile(data: pd.DataFrame, max_rows: int = 50_000):
                 for s, c in shapes.value_counts().head(5).items()
             },
             "samples": vals.drop_duplicates().head(5).tolist(),
-            "top_values": vals.head(5).values.tolist()
+            "top_values": vals.value_counts().head(5).to_dict()
         }
 
     return {

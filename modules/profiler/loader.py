@@ -15,9 +15,9 @@ def load_table(file_bytes: bytes, filename: str):
 
     try:
         if extension in {".csv", ".tsv"}:
-            delimiter = "/t" if extension == ".tsv" else ","
+            delimiter = "\t" if extension == ".tsv" else ","
             data = None
-            for encoding in ("utf-8-sig", "cp125", "latin-1"):
+            for encoding in ("utf-8-sig", "cp1252", "latin-1"):
                 try:
                     data = pd.read_csv(buffer, sep = delimiter, encoding = encoding, **READ_OPTS)
                     break
@@ -27,7 +27,7 @@ def load_table(file_bytes: bytes, filename: str):
                 raise InvalidSpreadsheetError("Could not decode the file's text encoding.")
 
 
-        elif extension == ".xslx":
+        elif extension == ".xlsx":
             data = pd.read_excel(buffer, engine = "openpyxl", **READ_OPTS)
 
         elif extension == ".xls":
