@@ -84,22 +84,3 @@ def run_sandbox(code: str, input_key: str, run_id: str, iteration: int):
         "output_key": output_key,
         "output_data": download_output(output_key)
     }
-
-
-if __name__ == "__main__":
-    sample = pd.DataFrame({
-        "vendor": [" Tata ", "infosys", "WIPRO", "Reliance"],
-        "amount": ["1,200", "N/A", "", "450"],
-    })
-    code = '''
-def transform(df):
-    df["vendor"] = df["vendor"].str.strip().str.title()
-    df["amount"] = pd.to_numeric(
-        df["amount"].str.replace(",", "", regex=False).replace({"N/A": None, "": None})
-    )
-    return df
-'''
-    run_id = new_run_id()
-    key = upload_dataframe(sample, run_id, iteration = 1)
-    out = run_sandbox(code, key, run_id, iteration = 1)
-    print(out if not out["ok"] else out["output_df"])
