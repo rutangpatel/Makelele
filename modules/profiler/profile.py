@@ -35,10 +35,5 @@ def create_profile(data: pd.DataFrame, max_rows: int = 50_000):
         "duplicate_rows": int(data.duplicated().sum()),
         "first_rows": data.head(3).astype(str).values.tolist(),
         "last_rows": data.tail(3).astype(str).values.tolist(),
-
         "columns": columns
     }
-
-if __name__ == "__main__":
-    p = "C:/Users/HP/Downloads/Messy_Employee_dataset.csv"
-    print(create_profile(load_table(Path(p).read_bytes(), p)))

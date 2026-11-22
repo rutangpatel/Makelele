@@ -7,9 +7,9 @@ from core.config import setting
 from modules.aws.s3 import get_s3_client
 from modules.aws.lambda_client import get_lambda
 
-FUNCTION_NAME = "pipeline-sandbox"
-INPUT_PREFIX = "sandbox/input"
-OUTPUT_PREFIX = "sandbox/output"
+FUNCTION_NAME = "makelele-sandbox"
+INPUT_PREFIX = "Input"
+OUTPUT_PREFIX = "Output"
 
 
 @lru_cache
