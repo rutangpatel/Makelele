@@ -19,7 +19,7 @@ def create_profile(data: pd.DataFrame, max_rows: int = 50_000):
         vals = s[~isnull]
         shapes = vals.map(shape)
         columns[str(column)] = {
-            "null_percentage": round(100 * isnull.mean(), 1),
+            "null_percentage": float(round(100 * isnull.mean(), 1)),
             "null_tokens": sorted(set(s[isnull])),
             "unique": int(vals.nunique()),
             "top_shape": {
@@ -27,7 +27,7 @@ def create_profile(data: pd.DataFrame, max_rows: int = 50_000):
                 for s, c in shapes.value_counts().head(5).items()
             },
             "samples": vals.drop_duplicates().head(5).tolist(),
-            "top_values": vals.value_counts().head(5).to_dict()
+            "top_values": {k: int(v) for k, v in vals.value_counts().head(5).items()}
         }
 
     return {

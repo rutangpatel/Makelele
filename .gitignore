@@ -9,3 +9,6 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+# LangGraph checkpoints (contain job state)
+checkpoints.db*

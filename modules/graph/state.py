@@ -25,7 +25,8 @@ class PipelineState(TypedDict):
     # Loop
     iteration: int
     code: str
-    input_key: str
+    sample_key: str
+    full_key: str
     sandbox_result: dict
     validation: dict
     attempts: Annotated[list[Attempt], operator.add]

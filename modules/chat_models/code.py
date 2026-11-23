@@ -1,4 +1,7 @@
-from core.config import setting
-from langchain_openai.chat_models import ChatOpenAI
+from pydantic import BaseModel, Field
+from modules.chat_models.provider import get_chat_model
 
-coding_model = ChatOpenAI(model = setting.OPENAI_MODEL, api_key = setting.OPENAI_API_KEY)
+class TransformationCode(BaseModel):
+    code: str = Field(description = "You are supposed to provide pandas code in def transform(data):")
+
+coding_model = get_chat_model().with_structured_output(TransformationCode)

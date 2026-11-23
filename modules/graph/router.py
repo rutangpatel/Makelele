@@ -7,7 +7,7 @@ def is_stuck(attempts):
     counts = [attempt["error_count"] for attempt in attempts]
     return len(counts) >= 3 and min(counts[-2:]) >= counts[-3]
 
-def router_after_sandbox(state):
+def route_after_sandbox(state):
     result = state["sandbox_result"]
     if result["ok"]:
         return "validate"
@@ -17,9 +17,9 @@ def router_after_sandbox(state):
         return "stop"
     return "diagnose"
 
-def router_after_validation(state):
+def route_after_validation(state):
     if state["validation"]["passed"]:
-        return "report"
+        return "final_run"
     if state["iteration"] >= MAX_ITERATIONS or is_stuck(state["attempts"]):
         return "stop"
     return "diagnose"
