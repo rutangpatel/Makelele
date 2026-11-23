@@ -3,21 +3,18 @@ from modules.security.encryption import encrypt_bytes, decrypt_bytes
 from modules.aws.s3 import get_s3_client
 from functools import lru_cache
 
+PREFIX = "Vault"
+
 @lru_cache
 def s3():
     return get_s3_client()
 
-def upload_encrypted(local_path: str, key: str):
+def upload_encrypted(data: bytes, job_id: str):
     """Upload the encrypted file in S3 bucket"""
-    with open(local_path, "rb") as file:
-        data = file.read()
-
-    encrypted_bytes = encrypt_bytes(data)
-
     s3().put_object(
         Bucket = setting.BUCKET_NAME,
-        Key = key,
-        Body = encrypted_bytes
+        Key = f"{PREFIX}/{job_id}/original.csv.enc",
+        Body = encrypt_bytes(data)
     )
 
 def download_decrypted(key: str):
@@ -27,6 +24,4 @@ def download_decrypted(key: str):
         Key = key
     )["Body"].read()
 
-    decrypted_data = decrypt_bytes(data)
-
-    return decrypted_data
+    return decrypt_bytes(data)

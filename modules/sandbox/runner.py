@@ -8,8 +8,8 @@ from modules.aws.s3 import get_s3_client
 from modules.aws.lambda_client import get_lambda
 
 FUNCTION_NAME = "makelele-sandbox"
-INPUT_PREFIX = "Input"
-OUTPUT_PREFIX = "Output"
+INPUT_PREFIX = "Sandbox/Input"
+OUTPUT_PREFIX = "Sandbox/Output"
 
 
 @lru_cache
