@@ -23,8 +23,8 @@ def lam():
 def new_run_id():
     return uuid.uuid4().hex[:12]
 
-def upload_input(data: bytes, run_id: str, iteration: int):
-    key = f"{INPUT_PREFIX}/{run_id}/{iteration}.csv"
+def upload_input(data: bytes, run_id: str, name: str):
+    key = f"{INPUT_PREFIX}/{run_id}/{name}.csv"
     s3().put_object(
         Bucket = setting.BUCKET_NAME,
         Key = key,
@@ -34,8 +34,8 @@ def upload_input(data: bytes, run_id: str, iteration: int):
 
     return key
 
-def upload_dataframe(data: pd.DataFrame, run_id: str, iteration: int):
-    return upload_input(data.to_csv(index = False).encode("utf-8"), run_id, iteration)
+def upload_dataframe(data: pd.DataFrame, run_id: str, name: str):
+    return upload_input(data.to_csv(index = False).encode("utf-8"), run_id, name)
 
 def download_output(key: str):
     body = s3().get_object(Bucket = setting.BUCKET_NAME, Key = key)["Body"].read()
@@ -82,5 +82,4 @@ def run_sandbox(code: str, input_key: str, run_id: str, iteration: int):
         "rows_in": result["rows_in"],
         "rows_out": result["rows_out"],
         "output_key": output_key,
-        "output_data": download_output(output_key)
     }

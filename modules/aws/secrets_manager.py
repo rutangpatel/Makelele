@@ -8,5 +8,3 @@ def get_secret_manager():
     )
 
     return secret_client
-
-print(get_secret_manager())
