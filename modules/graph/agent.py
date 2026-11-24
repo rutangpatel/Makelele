@@ -24,7 +24,9 @@ MAX_ERRORS_IN_PROMPT = 10
 PLANNER_PROMPT = """You plan how to clean a messy table so that it matches a target schema.
 You get a profile of the data and the target schema. Map every target column to a source column,
 list the transformations in order and anything a human must decide. Do not write code.
-If a target column has no clearly matching source column, do not guess: add it to open_questions."""
+Use the exact source column name in the mapping. If a target column has no matching source column,
+set source to null and say why. Name differences are checked by code, so never ask about the mapping
+in open_questions; use it only for decisions the data cannot answer."""
 
 CODER_PROMPT = """Write one Python function `transform(data)` that returns the cleaned DataFrame.
 Every value in `data` is a string. `pd` and `np` are available, you may also `import re`.
@@ -107,11 +109,33 @@ def planning(state: PipelineState):
         HumanMessage(f"PROFILE:\n{to_json(state['profile'])}\n\nTARGET SCHEMA:\n{to_json(state['schema'])}")
     ])
 
-    return {"plan": response.content}
+    plan = response.model_dump()
+    unconfirmed = [m for m in plan["mapping"] if m["source"] is None or normalise(m["source"]) != normalise(m["target"])]
+
+    return {"plan": plan, "unconfirmed_mapping": unconfirmed}
+
+def normalise(name: str):
+    """Lowercase and drop spaces, underscores and hyphens"""
+    return name.lower().replace(" ", "").replace("_", "").replace("-", "")
+
+def confirm_mapping(state: PipelineState):
+    """Pause for a human when a column mapping is not an exact name match"""
+    mapping, questions = state.get("unconfirmed_mapping", []), state["plan"].get("open_questions", [])
+    if not mapping and not questions:
+        return {}
+
+    answer = interrupt({
+        "question": "Please confirm or correct these column mappings and answer any open questions.",
+        "mapping": mapping,
+        "open_questions": questions
+    })
+    decision = f"Column mapping to confirm:\n{to_json(mapping)}\nOpen questions: {to_json(questions)}\nHuman answer: {answer}"
+
+    return {"human_answers": [decision], "status": "running"}
 
 def coding(state: PipelineState):
     """Write the transform code, using the diagnosis and human answers on retries"""
-    parts = [f"PLAN:\n{state['plan']}", f"TARGET SCHEMA:\n{to_json(state['schema'])}"]
+    parts = [f"PLAN:\n{to_json(state['plan'])}",f"TARGET SCHEMA:\n{to_json(state['schema'])}"]
     if state.get("code"):
         parts.append(f"PREVIOUS CODE:\n{state['code']}")
     if state.get("diagnosis"):
@@ -211,6 +235,7 @@ graph = StateGraph(PipelineState)
 
 graph.add_node("profile", profile)
 graph.add_node("planning", planning)
+graph.add_node("confirm_mapping", confirm_mapping)
 graph.add_node("write_code", coding)
 graph.add_node("sandbox", sandbox_runner)
 graph.add_node("validate", validation)
@@ -222,7 +247,8 @@ graph.add_node("stop", stop)
 
 graph.add_edge(START, "profile")
 graph.add_edge("profile", "planning")
-graph.add_edge("planning", "write_code")
+graph.add_edge("planning", "confirm_mapping")
+graph.add_edge("confirm_mapping", "write_code")
 graph.add_edge("write_code", "sandbox")
 
 graph.add_conditional_edges("sandbox", route_after_sandbox, ["validate", "diagnose", "stop"])

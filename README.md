@@ -13,7 +13,7 @@ Built with [LangGraph](https://langchain-ai.github.io/langgraph/), FastAPI and S
 </p>
 
 1. **Profile** - decrypts the upload, profiles every column and stores a 500-row sample plus the full file for the sandbox.
-2. **Plan** - an LLM maps every target column to a source column and lists the transformations. Anything it can't map with confidence becomes an open question instead of a guess.
+2. **Plan** - an LLM proposes a source column for every target column and lists the transformations. Plain code then checks each match: if the names differ once case, spaces, underscores and hyphens are ignored (e.g. `ship_date` -> `order_date`), or no source was found, or the planner raised open questions, the run pauses and shows you the mapping to confirm or correct. Exact name matches (e.g. `Order Date` -> `order_date`) go straight to code writing.
 3. **Write code** - an LLM writes a single `transform(data)` function.
 4. **Sandbox** - the code runs on the sample inside a Lambda function that can only read its input and write its output.
 5. **Validate** - plain Python checks columns, required values, numbers, dates and row count against the schema.

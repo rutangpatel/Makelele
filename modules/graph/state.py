@@ -20,7 +20,8 @@ class PipelineState(TypedDict):
 
     # Planner
     profile: dict
-    plan: str
+    plan: dict
+    unconfirmed_mapping: list[dict]
 
     # Loop
     iteration: int

@@ -159,6 +159,10 @@ def job_view(job_id: str):
         with st.container(border = True):
             st.markdown("#### :material/help: The agent needs a decision")
             st.info(job["question"])
+            if job.get("mapping"):
+                st.dataframe(pd.DataFrame(job["mapping"], columns = ["target", "source", "reason"]), hide_index = True)
+            for question in job.get("open_questions") or []:
+                st.markdown(f"- {question}")
             with st.form("answer", border = False):
                 answer = st.text_area("Your answer", placeholder = "Type your decision for the agent")
                 if st.form_submit_button("Send answer", type = "primary", icon = ":material/send:") and answer.strip():

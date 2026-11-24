@@ -57,10 +57,11 @@ def get_job(job_id: str):
     """Status, iteration, attempts and the pending question"""
     snapshot = get_snapshot(job_id)
     values = snapshot.values
-    status, question, error = values.get("status", "running"), None, None
+    status, error, pending = values.get("status", "running"), None, {}
 
+    # The question comes from ask_human or confirm_mapping; only confirm_mapping sends a mapping
     if snapshot.interrupts:
-        status, question = "waiting_for_human", snapshot.interrupts[0].value["question"]
+        status, pending = "waiting_for_human", snapshot.interrupts[0].value
     elif errors := [t.error for t in snapshot.tasks if t.error]:
         status, error = "failed", repr(errors[0])
 
@@ -72,7 +73,9 @@ def get_job(job_id: str):
         "status": status,
         "iteration": values.get("iteration", 0),
         "attempts": attempts,
-        "question": question,
+        "question": pending.get("question"),
+        "mapping": pending.get("mapping"),
+        "open_questions": pending.get("open_questions"),
         "stop_reason": values.get("stop_reason"),
         "error": error,
         "has_download": bool(values.get("vault_cleaned_key"))
@@ -80,7 +83,7 @@ def get_job(job_id: str):
 
 @app.post("/jobs/{job_id}/answer")
 def answer_job(job_id: str, background_tasks: BackgroundTasks, answer: str = Form(...)):
-    """Resume a job paused at ask_human"""
+    """Resume a job paused at ask_human or confirm_mapping"""
     if not get_snapshot(job_id).interrupts:
         raise HTTPException(status_code = 409, detail = "Job is not waiting for an answer")
     background_tasks.add_task(run_graph, Command(resume = answer), job_id)
