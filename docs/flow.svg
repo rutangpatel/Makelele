@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 890 320" width="890" height="320" role="img" aria-label="Makelele flow: profile, plan, write code, sandbox, validate, final run, report, done. Failures go to diagnose, which loops back to write code, asks a human, reports an impossible rule, or stops.">
+  <style>
+    .box { fill: #f6f8fa; stroke: #d0d7de; stroke-width: 1.5; }
+    .txt { fill: #1f2328; font: 600 13px system-ui, -apple-system, "Segoe UI", sans-serif; text-anchor: middle; dominant-baseline: central; }
+    .lbl { fill: #59636e; font: 11px system-ui, -apple-system, "Segoe UI", sans-serif; text-anchor: middle; }
+    .main { stroke: #8c959f; stroke-width: 1.5; fill: none; }
+    .loop { stroke: #d97706; stroke-width: 1.5; fill: none; stroke-dasharray: 6 5; animation: flow 1.2s linear infinite; }
+    .diag { stroke: #d97706; }
+    .done { stroke: #1a7f37; }
+    .halt { stroke: #cf222e; }
+    .token { fill: #2563eb; }
+    .glow { fill: #2563eb; opacity: 0.25; }
+    @keyframes flow { to { stroke-dashoffset: -22; } }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #161b22; stroke: #30363d; }
+      .txt { fill: #e6edf3; }
+      .lbl { fill: #9198a1; }
+      .main { stroke: #6e7681; }
+      .token, .glow { fill: #4493f8; }
+    }
+    @media (prefers-reduced-motion: reduce) { .loop { animation: none; } }
+  </style>
+
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8c959f"/>
+    </marker>
+    <marker id="o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#d97706"/>
+    </marker>
+  </defs>
+
+  <!-- Main path arrows -->
+  <g class="main" marker-end="url(#a)">
+    <path d="M100,50 H120"/>
+    <path d="M210,50 H230"/>
+    <path d="M320,50 H340"/>
+    <path d="M430,50 H450"/>
+    <path d="M540,50 H560"/>
+    <path d="M650,50 H670"/>
+    <path d="M760,50 H780"/>
+  </g>
+
+  <!-- Retry loop and exits -->
+  <g class="loop" marker-end="url(#o)">
+    <path d="M385,70 V148"/>
+    <path d="M495,70 V150 Q495,170 475,170 H432"/>
+    <path d="M342,170 H295 Q275,170 275,150 V73"/>
+    <path d="M362,190 L307,247"/>
+    <path d="M408,190 L463,247"/>
+    <path d="M432,182 H695 Q715,182 715,162 V73"/>
+    <path d="M230,270 H217 V90 L240,72"/>
+  </g>
+
+  <text class="lbl" x="362" y="115">fail</text>
+  <text class="lbl" x="522" y="115">fail</text>
+  <text class="lbl" x="300" y="115">fix</text>
+  <text class="lbl" x="312" y="215">ambiguous</text>
+  <text class="lbl" x="462" y="215">stuck / max</text>
+  <text class="lbl" x="620" y="198">impossible</text>
+  <text class="lbl" x="190" y="180">answer</text>
+
+  <!-- A job: first try fails validation, gets diagnosed, fixed, then passes -->
+  <g>
+    <circle class="glow" r="11">
+      <animateMotion dur="10s" repeatCount="indefinite" path="M55,50 H495 V150 Q495,170 475,170 H295 Q275,170 275,150 V50 H825"/>
+    </circle>
+    <circle class="token" r="5">
+      <animateMotion dur="10s" repeatCount="indefinite" path="M55,50 H495 V150 Q495,170 475,170 H295 Q275,170 275,150 V50 H825"/>
+    </circle>
+  </g>
+
+  <!-- Nodes -->
+  <g>
+    <rect class="box" x="10" y="30" width="90" height="40" rx="8"/><text class="txt" x="55" y="50">Profile</text>
+    <rect class="box" x="120" y="30" width="90" height="40" rx="8"/><text class="txt" x="165" y="50">Plan</text>
+    <rect class="box" x="230" y="30" width="90" height="40" rx="8"/><text class="txt" x="275" y="50">Write code</text>
+    <rect class="box" x="340" y="30" width="90" height="40" rx="8"/><text class="txt" x="385" y="50">Sandbox</text>
+    <rect class="box" x="450" y="30" width="90" height="40" rx="8"/><text class="txt" x="495" y="50">Validate</text>
+    <rect class="box" x="560" y="30" width="90" height="40" rx="8"/><text class="txt" x="605" y="50">Final run</text>
+    <rect class="box" x="670" y="30" width="90" height="40" rx="8"/><text class="txt" x="715" y="50">Report</text>
+    <rect class="box done" x="780" y="30" width="90" height="40" rx="8"/><text class="txt" x="825" y="50">Done</text>
+    <rect class="box diag" x="340" y="150" width="90" height="40" rx="8"/><text class="txt" x="385" y="170">Diagnose</text>
+    <rect class="box" x="230" y="250" width="90" height="40" rx="8"/><text class="txt" x="275" y="270">Ask human</text>
+    <rect class="box halt" x="450" y="250" width="90" height="40" rx="8"/><text class="txt" x="495" y="270">Stop</text>
+  </g>
+
+</svg>

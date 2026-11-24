@@ -7,6 +7,8 @@ import pandas as pd
 import streamlit as st
 
 POLL_SECONDS = 3
+# Types the validator in modules/graph/agent.py understands
+TYPES = ["string", "integer", "decimal", "date"]
 
 # Label and badge color per job status
 STATUS = {
@@ -35,6 +37,28 @@ def preview(file):
     except Exception:
         return None
 
+def build_schema(table: pd.DataFrame, keep_rows: bool):
+    """Schema dict from the editor table, or an error message"""
+    text = lambda v: "" if pd.isna(v) else str(v).strip()
+    columns = {}
+    for row in table.itertuples(index = False):
+        name = text(row.column)
+        if not name:
+            continue
+        if name in columns:
+            return None, f"Column '{name}' is listed twice."
+        rules = {"type": text(row.type) or "string"}
+        # New rows can hold None, which bool() would not treat as unticked
+        if pd.notna(row.required) and bool(row.required):
+            rules["required"] = True
+        if rules["type"] == "date" and text(row.format):
+            rules["format"] = text(row.format)
+        columns[name] = rules
+
+    if not columns:
+        return None, "Add at least one column."
+    return {"columns": columns, "row_count_preserved": keep_rows}, None
+
 def upload_view():
     """Pick a file and a schema, then start a job"""
     st.subheader("1. Upload a messy file")
@@ -51,29 +75,35 @@ def upload_view():
         st.dataframe(data, hide_index = True, height = 250)
 
     columns = [] if data is None else [str(c) for c in data.columns]
-    draft = {"columns": {c: {"type": "string"} for c in columns}, "row_count_preserved": True}
+    draft = pd.DataFrame({"column": columns, "type": "string", "required": False, "format": ""})
 
     st.subheader("2. Define the target schema")
-    st.caption("Built from the file's headers. Rename, add or remove columns, set each type (string, integer, decimal, date) and mark required ones.")
-    left, right = st.columns([3, 2])
+    st.caption("One row per column of the clean file, built from the file's headers. Rename, add or delete rows, pick each type and tick the required ones.")
     # Keyed by file so a new upload rebuilds the draft
-    schema = left.text_area("Schema (JSON)", json.dumps(draft, indent = 2), height = 380, key = f"schema_{file.file_id}")
+    table = st.data_editor(
+        draft,
+        key = f"schema_{file.file_id}",
+        num_rows = "dynamic",
+        hide_index = True,
+        use_container_width = True,
+        column_config = {
+            "column": st.column_config.TextColumn("Column", required = True),
+            "type": st.column_config.SelectboxColumn("Type", options = TYPES, required = True, default = "string"),
+            "required": st.column_config.CheckboxColumn("Required", default = False),
+            "format": st.column_config.TextColumn("Date format", help = "Only for date columns, default %Y-%m-%d")
+        }
+    )
+    keep_rows = st.toggle("Output keeps the same number of rows", value = True)
 
-    try:
-        columns = json.loads(schema).get("columns", {})
-        right.markdown(f"**{len(columns)} target columns**")
-        right.dataframe(
-            pd.DataFrame([{"column": c, "type": r.get("type", ""), "required": bool(r.get("required"))} for c, r in columns.items()]),
-            hide_index = True,
-            height = 380
-        )
-        valid = True
-    except (json.JSONDecodeError, AttributeError) as e:
-        right.error(f"Schema is not valid JSON: {e}", icon = ":material/data_object:")
-        valid = False
+    schema, error = build_schema(table, keep_rows)
+    if error:
+        st.error(error, icon = ":material/table_edit:")
+    else:
+        with st.expander(f"Schema JSON ({len(schema['columns'])} columns)"):
+            st.json(schema)
 
-    if st.button("Start cleaning", type = "primary", icon = ":material/play_arrow:", disabled = not valid, use_container_width = True):
-        response = call_api("POST", "/jobs", files = {"file": (file.name, file.getvalue())}, data = {"schema": schema})
+    if st.button("Start cleaning", type = "primary", icon = ":material/play_arrow:", disabled = error is not None, use_container_width = True):
+        response = call_api("POST", "/jobs", files = {"file": (file.name, file.getvalue())}, data = {"schema": json.dumps(schema)})
         if response.status_code == 400:
             st.error(response.json()["detail"], icon = ":material/block:")
         elif not response.ok:
