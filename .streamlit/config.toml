@@ -1,0 +1,5 @@
+[theme]
+primaryColor = "#2563eb"
+borderColor = "#e5e7eb"
+showWidgetBorder = true
+baseRadius = "medium"
